@@ -1,50 +1,34 @@
-function checkSite(url) {
-    let riskLevel = "safe";
-    let reasons = [];
-
-    try {
-        const u = new URL(url);
-
-        // Rule 1: HTTPS check
-        if (u.protocol !== "https:") {
-            riskLevel = "danger";
-            reasons.push("Site is not using HTTPS.");
-        }
-
-        // Rule 2: Suspicious domain
-        if (u.hostname.includes("-") || u.hostname.length > 40) {
-            if (riskLevel !== "danger") riskLevel = "suspicious";
-            reasons.push("Domain looks suspicious.");
-        }
-    } catch (e) {
-        riskLevel = "danger";
-        reasons.push("Invalid URL.");
-    }
-
-    return { riskLevel, reasons };
-}
-
-// ✅ FIX: properly fetch current tab URL
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (!tabs || !tabs[0]) return;
 
-    const url = tabs[0].url || "Unknown";
-    const { riskLevel, reasons } = checkSite(url);
+    const url = tabs[0].url;
 
-    const statusEl = document.getElementById("status");
-    statusEl.textContent = `Status: ${riskLevel.toUpperCase()} for ${url}`;
-    statusEl.className = riskLevel;
+    // Ask background to check with Safe Browsing API
+    chrome.runtime.sendMessage({ action: "checkSafeBrowsing", url }, (response) => {
+        const statusEl = document.getElementById("status");
+        const reasonsEl = document.getElementById("reasons");
+        reasonsEl.innerHTML = "";
 
-    const reasonsEl = document.getElementById("reasons");
-    reasons.forEach(r => {
-        const li = document.createElement("li");
-        li.textContent = r;
-        reasonsEl.appendChild(li);
+        if (!response) {
+            statusEl.textContent = "Error: No response from background.";
+            statusEl.className = "danger";
+            return;
+        }
+
+        if (response.safe) {
+            statusEl.textContent = `SAFE for transactions: ${url}`;
+            statusEl.className = "safe";
+            const li = document.createElement("li");
+            li.textContent = "No threats detected by Google Safe Browsing.";
+            reasonsEl.appendChild(li);
+        } else {
+            statusEl.textContent = `DANGEROUS: ${url}`;
+            statusEl.className = "danger";
+            response.threats.forEach(t => {
+                const li = document.createElement("li");
+                li.textContent = `Threat: ${t}`;
+                reasonsEl.appendChild(li);
+            });
+        }
     });
-
-    if (reasons.length === 0) {
-        const li = document.createElement("li");
-        li.textContent = "No obvious risks detected.";
-        reasonsEl.appendChild(li);
-    }
 });
