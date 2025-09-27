@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "SafePay Checker",
+  "version": "1.0",
+  "description": "Check if a site is safe for online transactions.",
+  "permissions": ["tabs", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

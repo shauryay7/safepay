@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SafePay Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; width: 280px; padding: 12px; }
+        h3 { margin: 0 0 10px; font-size: 18px; }
+        .safe { color: green; font-weight: bold; }
+        .suspicious { color: orange; font-weight: bold; }
+        .danger { color: red; font-weight: bold; }
+        ul { padding-left: 20px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+<h3>SafePay Checker</h3>
+<p id="status">Checking current site...</p>
+<ul id="reasons"></ul>
+
+<!-- ✅ external script instead of inline -->
+<script src="popup.js"></script>
+</body>
+</html>
